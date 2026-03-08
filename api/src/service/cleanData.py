@@ -5,22 +5,21 @@ def clean_data():
 
 	data.loc[data['is_last_lightning_cloud_ground'] != True, ['is_last_lightning_cloud_ground']] = False
 
-	data['lightning_id'] = pd.to_numeric(data['lightning_id'], errors='coerce')
+	data['lightning_id'] = pd.to_numeric(data['lightning_id'])#, errors='coerce')
+	data['date'] = pd.to_datetime(data['date'])
 
-	new_value = None
-	new_value_range = 0
+	alerte = False
+	alerte_value = None
+	old_alerte_value = None
 	for i in range(len(data)):
-		if i % 1000 == 0 :
-			print(i, new_value, new_value_range)
-		if pd.isna(data.at[i, 'airport_alert_id']):
-			if new_value_range < i or new_value is None:
-				values = data[(data['lightning_id'] > data.at[i, 'lightning_id']) & data['airport_alert_id'].notnull()]
-				if not values.empty:
-					new_value = values['airport_alert_id'].iloc[0]
-					new_value_range = values['lightning_id'].iloc[0]
-				else:
-					print(i, values)
-			data.at[i, 'airport_alert_id'] = new_value
+		if not pd.isna(data.at[i, 'airport_alert_id']) and not data.at[i, 'is_last_lightning_cloud_ground'] and alerte_value != data.at[i, 'airport_alert_id']:
+			alerte = True
+			old_alerte_value = alerte_value
+			alerte_value = data.at[i, 'airport_alert_id']
+		if alerte and data.at[i, 'is_last_lightning_cloud_ground']:
+			alerte = False
+		if alerte:
+			data.at[i, 'airport_alert_id'] = alerte_value
 
 	data.to_csv("bdd/segment_alerts_all_airports_train_clean.csv", index=False)
 
