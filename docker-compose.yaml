@@ -1,1 +1,42 @@
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: Meteo-Puissante-api
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - Meteo-Puissante-network
+    volumes:
+      - ./bdd:/app/bdd
 
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: Meteo-Puissante-web
+    ports:
+      - "67:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - Meteo-Puissante-network
+
+networks:
+  Meteo-Puissante-network:
+    driver: bridge
