@@ -19,6 +19,7 @@ services:
       - Meteo-Puissante-network
     volumes:
       - ./bdd:/app/bdd
+      - ./modelIa/StockageModels:/app/StockageModels
 
   web:
     build:
