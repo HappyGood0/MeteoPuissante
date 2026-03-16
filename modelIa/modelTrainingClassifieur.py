@@ -19,45 +19,26 @@ import pandas as pd
 
 print("📊 Chargement bdd eclairs")
 
-csv_path = "../bdd/segment_alerts_all_airports_train.csv"
+csv_path = "../bdd/segment_alerts_all_airports_train_clean.csv"
 data = pd.read_csv(csv_path, sep=",")
 
-date_cols = ['date']
-string_cols = ['airport', 'icloud']  # colonnes catégorielles
-numeric_cols = ['lon', 'lat', 'amplitude', 'maxis', 'dist', 'azimuth']
+train_size = int(len(data) * 0.8)
 
-# Préparer les features
-def preprocess(df):
-    df = df.copy()
-    # Extraire des features utiles depuis la date
-    df['date'] = pd.to_datetime(df['date'])
-    df['hour']      = df['date'].dt.hour
-    df['month']     = df['date'].dt.month
-    df['dayofweek'] = df['date'].dt.dayofweek
+y_train = data["is_last_lightning_cloud_ground"].iloc[:train_size]
+x_train = data.drop(columns=["is_last_lightning_cloud_ground"]).iloc[:train_size]
+y_test = data["is_last_lightning_cloud_ground"].iloc[train_size:]
+x_test = data.drop(columns=["is_last_lightning_cloud_ground"]).iloc[train_size:]
 
-    return df
 
-x = preprocess(data.iloc[:, :-1])
-y = data['is_last_lightning_cloud_ground']
+params = {"n_estimators": 100, "max_depth": 50, "min_samples_split": 2, "random_state": 42}
 
-# Encoder les colonnes string
-string_cols_remaining = ['airport', 'icloud']
-
-preprocessor = ColumnTransformer(transformers=[
-    ('cat', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1), 
-     string_cols_remaining)
-], remainder='passthrough')  # laisse passer les numériques tels quels
-
-model = Pipeline(steps=[
-    ('preprocessor', preprocessor),
-    ('clf', HistGradientBoostingClassifier(
-        max_iter=200,
-        max_depth=10,
-        random_state=42
-    ))
-])
-
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+model = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler()),
+            ("reg", RandomForestClassifier(**params)),
+        ]
+    )
 model.fit(x_train, y_train)
 predictions = model.predict(x_test)
 
@@ -73,25 +54,4 @@ print(f"✅ MSE: {metrics['mse']:.4f}")
 print(f"✅ MAE: {metrics['mae']:.4f}")
 print(f"✅ R2: {metrics['r2']:.4f}")
 
-joblib.dump(model, 'model.pkl')
-
-
-
-
-# y = data['is_last_lightning_cloud_ground']
-# x = data.iloc[:, :-1]
-# # split 80% train / 20% test ; retirer la première ligne demandée uniquement du train
-
-# y_train, y_test = train_test_split(y, test_size=0.2, random_state=42)
-# x_train, x_test = train_test_split(x, test_size=0.2, random_state=42)
-
-# params = {"n_estimators": 100, "max_depth": 50, "min_samples_split": 2, "random_state": 42}
-
-# model = Pipeline(
-#     steps=[
-#         ("imputer", SimpleImputer(strategy="median")),
-#         ("scaler", StandardScaler()),
-#         ("reg", RandomForestClassifier(**params)),
-#    ]
-# )
-# model.fit(x_train, y_train)
+joblib.dump(model, './StockageModels/model.pkl')
