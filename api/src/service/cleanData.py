@@ -7,7 +7,7 @@ def clean_data(data):
 	data['lightning_id'] = pd.to_numeric(data['lightning_id'])#, errors='coerce')
 	data['date'] = pd.to_datetime(data['date']).dt.tz_localize(None)
 
-	"""alerte = False
+	alerte = False
 	alerte_value = None
 	for i in range(len(data)):
 		if not pd.isna(data.at[i, 'airport_alert_id']) and not data.at[i, 'is_last_lightning_cloud_ground'] and alerte_value != data.at[i, 'airport_alert_id']:
@@ -16,7 +16,7 @@ def clean_data(data):
 		if alerte and data.at[i, 'is_last_lightning_cloud_ground']:
 			alerte = False
 		if alerte:
-			data.at[i, 'airport_alert_id'] = alerte_value"""
+			data.at[i, 'airport_alert_id'] = alerte_value
 
 def modify_data(data):	
 	data.insert(2, 'year', data['date'].dt.year)
@@ -61,7 +61,7 @@ def modify_data(data):
 
 	rep = {}
 	for airport in data["airport"].unique():
-		rep[str(airport)] = data[data["airport"] == airport].drop(['airport'], axis=1)
+		rep[str(airport)] = data[data["airport"] == airport].drop(['airport', 'lightning_id', 'lightning_airport_id', 'date'], axis=1)
 
 	return rep
 	
