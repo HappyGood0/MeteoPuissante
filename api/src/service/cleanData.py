@@ -88,7 +88,7 @@ def fetch_meteo_data(bearer_token, station_id, start_date, end_date):
 
 	csv_content = fetch_meteo_file(bearer_token, commande_id)
 	df = pd.read_csv(StringIO(csv_content), sep=";")  # Utilisez le bon séparateur si nécessaire
-	return df[["DATE", "PSTAT", "U", "RR1", "DRR1", "FF", "T", "N", "NBAS", "CL", "CM", "CH", "N1", "N2", "N3", "N4", "UV_INDICE"]]
+	return df[["DATE", "PSTAT", "U", "RR1", "DRR1", "FF", "T", "N", "NBAS", "CL", "CM", "CH", "N1", "N2", "N3", "N4"]]
 
 
 
