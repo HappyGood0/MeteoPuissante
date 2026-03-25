@@ -19,3 +19,4 @@ class EpisodeSchema(BaseModel):
     status: str
     events: List[LightningEvent]
     prediction: Optional[dict] = None
+
