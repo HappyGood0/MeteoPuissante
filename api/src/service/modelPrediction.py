@@ -1,11 +1,28 @@
 from src.model.model import EpisodeSchema
 import joblib
+import pandas as pd
+from src.service.cleanData import process_data
 
 
 MODEL_PATH = "StockageModels/modelNantes.pkl"
-model = joblib.load(MODEL_PATH)
+checkpoint = joblib.load(MODEL_PATH)
 
 def perform_calculations(data: EpisodeSchema):
-    print(data.events[0])
-    data
-    return {"score": 0.85, "label": "Orage violent", "suggestion": "Alerte orange"}
+    model = checkpoint['model']
+    threshold = checkpoint['threshold']
+    airport=data.airport
+    liste_dicts = [{**event.model_dump(), "lightning_id": 0, "lightning_airport_id": 0, "azimuth":4, "dist":4, "airport":airport, "is_last_lightning_cloud_ground":False, "airport_alert_id":0} for event in data.events]
+
+
+    df = pd.DataFrame(liste_dicts)
+    process_data(df)
+    print(type(df))
+
+ 
+
+    df = df[model.feature_names_in_]
+
+
+    predict = model.predict(df)
+    print(predict)
+    return {"result": predict}
