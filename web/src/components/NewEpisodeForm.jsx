@@ -21,9 +21,13 @@ function NewEpisodeForm({ onCreateEpisode, onCancel }) {
         <label>
           Aéroport
           <select value={airport} onChange={(e) => setAirport(e.target.value)}>
-            <option value="Pau">Pau</option>
+            <option value="Ajaccio">Ajaccio</option>
+            <option value="Bastia">Bastia</option>
             <option value="Biarritz">Biarritz</option>
-            <option value="Toulouse">Toulouse</option>
+            <option value="Nantes">Nantes</option>
+            <option value="Pise">Pise</option>
+
+
           </select>
         </label>
 

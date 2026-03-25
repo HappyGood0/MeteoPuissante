@@ -229,5 +229,3 @@ def clean_base_data():
 			.drop(['airport'], axis=1)\
 			.to_csv("bdd/segment_alerts_"+str(airport)+"_train_clean.csv", index=False)
 		print("Clean data are now in 'bdd/segment_alerts_"+airport+"_train_clean.csv'")
-
-clean_base_data()
