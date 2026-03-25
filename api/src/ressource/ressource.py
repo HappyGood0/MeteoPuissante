@@ -19,7 +19,7 @@ async def import_csv(file: UploadFile = File(...)):
     content = await file.read()
     try:
         df = pd.read_csv(StringIO(content.decode("utf-8")))
-        perform_calculations_csv(df)
+        result = perform_calculations_csv(df)
     except Exception:
         raise HTTPException(status_code=400, detail="Impossible de lire le fichier CSV.")
 
@@ -30,7 +30,7 @@ async def import_csv(file: UploadFile = File(...)):
             detail=f"Colonnes manquantes : {', '.join(sorted(missing))}",
         )
 
-    return {"rows": len(df), "columns": list(df.columns)}
+    return result
 
 
 
@@ -38,8 +38,7 @@ async def import_csv(file: UploadFile = File(...)):
 @router.post("/predict")
 async def predict(episode: EpisodeSchema):
     try:
-        perform_calculations_input(episode)
-        result = 0
+        result = perform_calculations_input(episode)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
