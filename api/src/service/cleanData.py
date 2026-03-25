@@ -1,6 +1,13 @@
 import pandas as pd
 from tqdm import trange
 
+station_meteo_fr_id = {
+	"Ajaccio": 20004002,
+	"Bastia": 20148001,
+	"Biarritz": 64024001,
+	"Nantes": 44020001,
+}
+
 def barycentre(df, time_col, col, time_window, max_rows):
 	results = []
 
@@ -37,7 +44,12 @@ def clean_data(data):
 		if alerte:
 			data.at[i, 'airport_alert_id'] = alerte_value
 
-def modify_data(data):
+def add_meteo_fr_data(data):
+	for airport in data["airport"].unique():
+		if airport in station_meteo_fr_id:
+			print(data[data["airport" == airport]]["date"].agg(["min", "max"]))
+
+def modify_data(data, for_training):
 	max_delta_of_same_storm = "1h"
 
 	data.insert(2, 'year', data['date'].dt.year)
@@ -65,11 +77,11 @@ def modify_data(data):
 							.rolling(max_delta_of_same_storm, on="date", closed = "right", min_periods=1)\
 							.mean()\
 							.reset_index(level=0, drop=True)['icloud'])
-
+	
 	data.insert(16, 'dist_barycentre', barycentre(data, 'date', 'dist', time_window=max_delta_of_same_storm, max_rows=6))
 	data['date_barycentre'] = barycentre(data, 'date', 'total_second', time_window=max_delta_of_same_storm, max_rows=6)
 	data.insert(18, 'azimuth_barycentre', barycentre(data, 'date', 'azimuth', time_window=max_delta_of_same_storm, max_rows=6))
-
+	
 	m = 3
 	data['dist_barycentre_diff'] = (
 		data.groupby('airport', group_keys=False)['dist_barycentre']
@@ -88,6 +100,7 @@ def modify_data(data):
 	)
 	#Vitesse en coordonnée carthesienne
 	data.insert(19, "barycentre_speed", (data["dist_barycentre_diff"] + data["dist_barycentre"] * data["azimuth_barycentre_diff"]) / data["date_barycentre_diff"].clip(lower=1))
+	
 
 
 
@@ -97,26 +110,35 @@ def modify_data(data):
 										.cumsum())['airport_alert_id']\
 	  									.cumcount())
 
-	rep = {}
-	for airport in data["airport"].unique():
-		rep[str(airport)] = data[data["airport"] == airport].drop(['airport', 'lightning_id', 'lightning_airport_id', 'date', 'lat', 'lon', 'total_second', 'date_barycentre', 'dist_barycentre_diff', 'date_barycentre_diff', 'azimuth_barycentre_diff'], axis=1)
 
-	return rep
+
+	drop_columns = ['lightning_id', 'lightning_airport_id', 'date', 'lat', 'lon', 'total_second', 'airport']#, 'date_barycentre', 'dist_barycentre_diff', 'date_barycentre_diff', 'azimuth_barycentre_diff']
+	if for_training:
+		drop_columns.pop()
+	
+	data.drop(drop_columns, axis=1)
+
+
 	
 
-def process_data():
-	data = pd.read_csv("bdd/segment_alerts_all_airports_train.csv", na_values=['Empty', '', 'NaN', 'nan'])
-
+def process_data(data, for_training=False):
 	print("Start of the clean process...")
 	clean_data(data)
 	print("End of the clean process\n")
 	print("Start of the modifying process...")
-	dico = modify_data(data)
+	modify_data(data, for_training)
 	print("End of the modifying process\n")
 
-	print("Saving change...")
-	for airport in dico:
-		dico.get(airport).to_csv("bdd/segment_alerts_"+airport+"_train_clean.csv", index=False)
+def clean_base_data():
+	data = pd.read_csv("bdd/segment_alerts_all_airports_train.csv", na_values=['Empty', '', 'NaN', 'nan'])
+
+	process_data(data, True)
+
+	for airport in data["airport"].unique():
+		data[data["airport"] == airport]\
+			.drop(['airport'], axis=1)\
+			.to_csv("bdd/segment_alerts_"+str(airport)+"_train_clean.csv", index=False)
 		print("Clean data are now in 'bdd/segment_alerts_"+airport+"_train_clean.csv'")
 
-process_data()
+
+#clean_base_data()

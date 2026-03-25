@@ -19,7 +19,7 @@ services:
       - Meteo-Puissante-network
     volumes:
       - ./bdd:/app/bdd
-      - ./modelIa/StockageModels:/app/StockageModels
+      - ./StockageModels:/app/StockageModels
 
   web:
     build:
@@ -41,3 +41,7 @@ services:
 networks:
   Meteo-Puissante-network:
     driver: bridge
+
+volumes:
+  StockageModels:
+  bdd:
