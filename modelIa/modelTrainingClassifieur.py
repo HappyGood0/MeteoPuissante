@@ -2,6 +2,7 @@ from pathlib import Path
 import joblib
 import pandas as pd
 import numpy as np
+from xgboost import XGBClassifier
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
@@ -11,17 +12,18 @@ from sklearn.metrics import (
     classification_report, confusion_matrix,
     roc_auc_score, f1_score, precision_recall_curve
 )
+
 villes = ["Biarritz","Ajaccio","Nantes","Bastia","Pise"]
 
 for ville in villes:
 
 
 # ── Chargement ───────────────────────────────────────────────────────────────
-    print("📊 Chargement bdd eclairs")
+    print("📊 Chargement bdd eclairs " + ville)
     data = pd.read_csv("bdd/segment_alerts_"+ ville + "_train_clean.csv", sep=",")
 
     TARGET = "is_last_lightning_cloud_ground"
-    DROP_COLS = ["airport_alert_id"]
+    DROP_COLS = ["airport_alert_id","date"]
     data = data.drop(columns=[c for c in DROP_COLS if c in data.columns])
 
     # ── Split temporel ───────────────────────────────────────────────────────────
@@ -43,22 +45,24 @@ for ville in villes:
     print(f"Nombre faux a éviter : {n_false_test}")
     # ── Modèle avec poids manuel ─────────────────────────────────────────────────
     # On donne un poids = ratio réel à la classe True pour compenser
-    params = {
-        "n_estimators": 300,
-        "max_depth": 15,
-        "min_samples_split": 10,
-        "class_weight": {False: 1, True: ratio * 0.75},  
+    params_xgb = {
+        "n_estimators": 500,       # Plus d'arbres, car le boosting est itératif
+        "max_depth": 6,            # On réduit la profondeur (XGB est plus sensible au surapprentissage)
+        "learning_rate": 0.05,     # Vitesse d'apprentissage (pas trop élevé)
+        "scale_pos_weight": ratio, # Gère le déséquilibre des classes
         "random_state": 42,
+        "tree_method": "hist",     # Accélère l'entraînement
         "n_jobs": -1,
+        "eval_metric": "logloss"
     }
 
     model = Pipeline(steps=[
         ("imputer", SimpleImputer(strategy="median")),
         ("scaler",  StandardScaler()),
-        ("clf",     RandomForestClassifier(**params)),
+        ("clf",     XGBClassifier(**params_xgb)),
     ])
 
-    model.fit(x_train, y_train)
+    model.fit(x_train, y_train.astype(int))
     predictions_proba = model.predict_proba(x_test)[:, 1]
 
     # ── Recherche du meilleur seuil ──────────────────────────────────────────────
@@ -117,5 +121,5 @@ for ville in villes:
     # ── Sauvegarde du modèle ET du seuil ────────────────────────────────────────
     Path("./StockageModels").mkdir(exist_ok=True)
     joblib.dump({"model": model, "threshold": threshold_ajuste},
-                "./StockageModels/model " + ville + ".pkl")
-    print(f"\n💾 Modèle + seuil de " + ville + " ({threshold_ajuste:.3f}) sauvegardés.")
+                "./StockageModels/model" + ville + ".pkl")
+    print(f"\n💾 Modèle de " + ville + " sauvegardés avec succès")
