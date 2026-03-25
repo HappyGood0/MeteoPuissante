@@ -23,7 +23,7 @@ for ville in villes:
     data = pd.read_csv("bdd/segment_alerts_"+ ville + "_train_clean.csv", sep=",")
 
     TARGET = "is_last_lightning_cloud_ground"
-    DROP_COLS = ["airport_alert_id","date"]
+    DROP_COLS = ["UV_INDICE"]
     data = data.drop(columns=[c for c in DROP_COLS if c in data.columns])
 
     # ── Split temporel ───────────────────────────────────────────────────────────
@@ -32,7 +32,12 @@ for ville in villes:
     y_train = data[TARGET].iloc[:train_size]
     x_test  = data.drop(columns=[TARGET]).iloc[train_size:]
     y_test  = data[TARGET].iloc[train_size:]
-
+    # Supprimer les colonnes qui n'ont qu'une seule valeur unique (constantes)
+    cols_constantes = [col for col in x_train.columns if x_train[col].nunique() <= 1]
+    if cols_constantes:
+        print(f"⚠️ Suppression des colonnes constantes : {cols_constantes}")
+        x_train = x_train.drop(columns=cols_constantes)
+        x_test = x_test.drop(columns=cols_constantes)
     # Calcul du ratio réel de déséquilibre
     n_false = (y_train == False).sum()
     n_false_test = (y_test == False).sum()
@@ -112,11 +117,24 @@ for ville in villes:
 
     #features : 
     print("\n🔍 Importance des features :")
-    feature_names = x_train.columns.tolist()
-    importances = model.named_steps["clf"].feature_importances_
+
+    # On récupère le classifieur final de la pipeline
+    clf = model.named_steps["clf"]
+
+    # XGBoost stocke les noms des features qu'il a utilisé pour l'entraînement ici :
+    if hasattr(clf, "feature_names_in_"):
+        feature_names = clf.feature_names_in_
+    else:
+        # Si non disponible, on reprend x_train mais on filtre les colonnes
+        feature_names = x_train.columns.tolist()
+
+    importances = clf.feature_importances_
+
+    # Création de la série avec les noms validés par le modèle
     feat_imp = pd.Series(importances, index=feature_names).sort_values(ascending=False)
-    print("\n🌟 Top  features :")
-    print(feat_imp)
+
+    print("\n🌟 Top features :")
+    print(feat_imp.head(15))
 
     # ── Sauvegarde du modèle ET du seuil ────────────────────────────────────────
     Path("./StockageModels").mkdir(exist_ok=True)
