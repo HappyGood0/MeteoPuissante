@@ -22,8 +22,11 @@ def perform_calculations_input(data: EpisodeSchema):
 
 
     predict = model.predict(df)
-    print(predict)
-    return {"result": predict}
+    print("papa")
+    print(type(predict))
+    print("popo")
+
+    return {"result": predict.tolist()}
 
 
 def perform_calculations_csv(data: EpisodeSchema):
@@ -42,7 +45,9 @@ def perform_calculations_csv(data: EpisodeSchema):
 
 
     predict = model.predict(df)
-    print(predict)
-    return {"result": predict}
+    print("papa")
+    print(type(predict))
+    print("popo")
+    return {"result": predict.tolist()}
 
 
