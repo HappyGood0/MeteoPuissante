@@ -1,8 +1,6 @@
-
-
 export async function checkApiHealth() {
   try {
-    const response = await fetch("/api/health");
+    const response = await fetch("http://localhost:8000/health");
     if (!response.ok) {
       throw new Error("API indisponible");
     }
@@ -15,7 +13,7 @@ export async function checkApiHealth() {
 
 export async function predictEpisode(episode) {
   try {
-    const response = await fetch("http://localhost:8000/api/predict", {
+    const response = await fetch("/api/predict", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -23,33 +21,18 @@ export async function predictEpisode(episode) {
       body: JSON.stringify(episode)
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error("Endpoint /api/predict indisponible");
+      throw new Error(data?.detail || "Erreur lors de la prédiction");
     }
 
-    const data = await response.json();
-    return data;
+    return {
+      result: Array.isArray(data?.result) ? data.result : []
+    };
   } catch (error) {
     return {
-      probability_last: null,
-      recommendation: "unknown",
-      message: "Prédiction non disponible pour le moment"
+      result: []
     };
   }
-}
-
-export async function importCsv(file) {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const response = await fetch("/api/import-csv", {
-    method: "POST",
-    body: formData,
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.detail || "Erreur lors de l'import.");
-  }
-  return data;
 }

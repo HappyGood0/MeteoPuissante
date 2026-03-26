@@ -1,15 +1,21 @@
-
 import { useState } from "react";
 import LightningInput from "./LightningInput";
 import CsvImport from "./CsvImport";
 
-function NewEpisodeForm({ onCreateEpisode, onCancel }) {
-  const [airport, setAirport] = useState("Pau");
+function NewEpisodeForm({ onCreateEpisode, onCreateEpisodeFromImport, onCancel }) {
+  const [airport, setAirport] = useState("Biarritz");
 
   function handleFirstEventSubmit(firstEvent) {
     onCreateEpisode({
       airport,
       firstEvent
+    });
+  }
+
+  function handleImportEvents(events) {
+    onCreateEpisodeFromImport({
+      airport,
+      events
     });
   }
 
@@ -26,8 +32,6 @@ function NewEpisodeForm({ onCreateEpisode, onCancel }) {
             <option value="Biarritz">Biarritz</option>
             <option value="Nantes">Nantes</option>
             <option value="Pise">Pise</option>
-
-
           </select>
         </label>
 
@@ -43,7 +47,7 @@ function NewEpisodeForm({ onCreateEpisode, onCancel }) {
         submitLabel="Créer l’épisode avec ce premier éclair"
       />
 
-      <CsvImport />
+      <CsvImport onImportEvents={handleImportEvents} />
     </section>
   );
 }

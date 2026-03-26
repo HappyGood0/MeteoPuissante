@@ -46,10 +46,42 @@ function App() {
     });
   }
 
+  async function handleCreateEpisodeFromImport({ airport, events }) {
+    const newEpisode = {
+      id: crypto.randomUUID(),
+      airport,
+      startedAt: new Date().toISOString(),
+      status: "active",
+      events,
+      prediction: null
+    };
+
+    const prediction = await predictEpisode(newEpisode);
+
+    setEpisode({
+      ...newEpisode,
+      prediction
+    });
+  }
+
   async function handleAddEvent(event) {
     const updatedEpisode = {
       ...episode,
       events: [...episode.events, event]
+    };
+
+    const prediction = await predictEpisode(updatedEpisode);
+
+    setEpisode({
+      ...updatedEpisode,
+      prediction
+    });
+  }
+
+  async function handleImportEvents(events) {
+    const updatedEpisode = {
+      ...episode,
+      events: [...episode.events, ...events]
     };
 
     const prediction = await predictEpisode(updatedEpisode);
@@ -105,6 +137,7 @@ function App() {
         {screen === "new" && (
           <NewEpisodeForm
             onCreateEpisode={handleCreateEpisode}
+            onCreateEpisodeFromImport={handleCreateEpisodeFromImport}
             onCancel={handleBackHome}
           />
         )}
@@ -113,6 +146,7 @@ function App() {
           <CurrentEpisodeView
             episode={episode}
             onAddEvent={handleAddEvent}
+            onImportEvents={handleImportEvents}
             onResetEpisode={handleResetEpisode}
             onStartNew={handleStartNew}
           />

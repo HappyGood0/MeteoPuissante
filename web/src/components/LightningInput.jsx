@@ -3,47 +3,47 @@ import { useState } from "react";
 function LightningInput({ onSubmit, submitLabel = "Ajouter l’éclair" }) {
   const [form, setForm] = useState({
     date: "",
-    lat: "",
-    lon: "",
+    dist: "",
+    azimuth: "",
     amplitude: "",
     maxis: "",
-    icloud: "false"
+    icloud: false
   });
 
   function handleChange(event) {
-    const { name, value } = event.target;
+    const { name, value, type, checked } = event.target;
     setForm((prev) => ({
       ...prev,
-      [name]: value
+      [name]: type === "checkbox" ? checked : value
     }));
   }
 
   function handleSubmit(event) {
     event.preventDefault();
 
-    if (!form.date || !form.lat || !form.lon || !form.amplitude) {
-      alert("Remplis au moins date, latitude, longitude et amplitude.");
+    if (!form.date || form.dist === "" || form.azimuth === "" || !form.amplitude) {
+      alert("Remplis au moins date, distance, azimut et amplitude.");
       return;
     }
 
     const formattedEvent = {
       date: form.date,
-      lat: Number(form.lat),
-      lon: Number(form.lon),
+      dist: Number(form.dist),
+      azimuth: Number(form.azimuth),
       amplitude: Number(form.amplitude),
       maxis: form.maxis === "" ? null : Number(form.maxis),
-      icloud: form.icloud === "true"
+      icloud: form.icloud
     };
 
     onSubmit(formattedEvent);
 
     setForm({
       date: "",
-      lat: "",
-      lon: "",
+      dist: "",
+      azimuth: "",
       amplitude: "",
       maxis: "",
-      icloud: "false"
+      icloud: false
     });
   }
 
@@ -62,23 +62,23 @@ function LightningInput({ onSubmit, submitLabel = "Ajouter l’éclair" }) {
       </label>
 
       <label>
-        Latitude
+        Distance à l’aéroport
         <input
           type="number"
           step="any"
-          name="lat"
-          value={form.lat}
+          name="dist"
+          value={form.dist}
           onChange={handleChange}
         />
       </label>
 
       <label>
-        Longitude
+        Azimut
         <input
           type="number"
           step="any"
-          name="lon"
-          value={form.lon}
+          name="azimuth"
+          value={form.azimuth}
           onChange={handleChange}
         />
       </label>
@@ -106,11 +106,13 @@ function LightningInput({ onSubmit, submitLabel = "Ajouter l’éclair" }) {
       </label>
 
       <label>
-        Type icloud
-        <select name="icloud" value={form.icloud} onChange={handleChange}>
-          <option value="false">false</option>
-          <option value="true">true</option>
-        </select>
+        <input
+          type="checkbox"
+          name="icloud"
+          checked={form.icloud}
+          onChange={handleChange}
+        />
+        Éclair intra-nuage
       </label>
 
       <button type="submit">{submitLabel}</button>

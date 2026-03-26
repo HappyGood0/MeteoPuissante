@@ -1,28 +1,27 @@
-
 function PredictionPanel({ prediction }) {
-  const probability =
-    prediction?.probability_last === null || prediction?.probability_last === undefined
-      ? "--"
-      : `${Math.round(prediction.probability_last * 100)} %`;
+  const results = Array.isArray(prediction?.result) ? prediction.result : [];
 
-  const recommendation = prediction?.recommendation ?? "unknown";
-  const message = prediction?.message ?? "Pas de prédiction disponible.";
+  const lastResult = results.length > 0 ? results[results.length - 1] : null;
+
+  const predictionText =
+    lastResult === null
+      ? "--"
+      : Number(lastResult) === 1 || lastResult === true
+        ? "Dernier éclair probable"
+        : "Pas le dernier éclair";
 
   return (
     <div className="card">
       <h3>Prédiction / résultat</h3>
 
       <p>
-        <span className="label">Probabilité que l’épisode soit terminé :</span>{" "}
-        {probability}
+        <span className="label">Résultat pour le dernier éclair :</span>{" "}
+        {predictionText}
       </p>
 
       <p>
-        <span className="label">Recommandation :</span> {recommendation}
-      </p>
-
-      <p>
-        <span className="label">Message :</span> {message}
+        <span className="label">Sortie brute du modèle :</span>{" "}
+        {results.length > 0 ? `[${results.join(", ")}]` : "--"}
       </p>
     </div>
   );

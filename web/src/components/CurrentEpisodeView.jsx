@@ -1,4 +1,3 @@
-
 import LightningInput from "./LightningInput";
 import EpisodeHistory from "./EpisodeHistory";
 import PredictionPanel from "./PredictionPanel";
@@ -7,6 +6,7 @@ import CsvImport from "./CsvImport";
 function CurrentEpisodeView({
   episode,
   onAddEvent,
+  onImportEvents,
   onResetEpisode,
   onStartNew
 }) {
@@ -36,7 +36,7 @@ function CurrentEpisodeView({
 
       <div className="grid-two">
         <LightningInput onSubmit={onAddEvent} />
-        <CsvImport />
+        <CsvImport onImportEvents={onImportEvents} />
       </div>
 
       <div className="grid-two">

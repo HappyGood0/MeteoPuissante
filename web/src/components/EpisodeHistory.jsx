@@ -1,4 +1,3 @@
-
 function EpisodeHistory({ events }) {
   return (
     <div className="card">
@@ -11,22 +10,22 @@ function EpisodeHistory({ events }) {
           <thead>
             <tr>
               <th>Date</th>
-              <th>Lat</th>
-              <th>Lon</th>
+              <th>Distance</th>
+              <th>Azimut</th>
               <th>Amplitude</th>
               <th>Maxis</th>
-              <th>Icloud</th>
+              <th>Type</th>
             </tr>
           </thead>
           <tbody>
             {events.map((event, index) => (
               <tr key={index}>
                 <td>{event.date}</td>
-                <td>{event.lat}</td>
-                <td>{event.lon}</td>
+                <td>{event.dist}</td>
+                <td>{event.azimuth}</td>
                 <td>{event.amplitude}</td>
                 <td>{event.maxis ?? "-"}</td>
-                <td>{String(event.icloud)}</td>
+                <td>{event.icloud ? "Nuage" : "Sol"}</td>
               </tr>
             ))}
           </tbody>
