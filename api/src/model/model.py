@@ -5,8 +5,8 @@ from pydantic import BaseModel
 
 class LightningEvent(BaseModel):
     date: str
-    lat: float
-    lon: float
+    dist: float
+    azimuth: float
     amplitude: float
     maxis: Optional[float] = None
     icloud: bool
